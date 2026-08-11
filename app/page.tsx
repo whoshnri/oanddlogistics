@@ -5,7 +5,7 @@ export default function Home() {
   const initialBoundary = getPublicCoverageBoundary();
 
   return (
-    <main className="h-screen bg-mustard text-ink">
+    <main className="h-dvh overflow-hidden bg-mustard text-ink">
       <Hero initialBoundary={initialBoundary} />
     </main>
   );
