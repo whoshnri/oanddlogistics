@@ -58,7 +58,10 @@ export function CoverageChecker({ initialBoundary, defaultMapZoom }: CoverageChe
   }, [response]);
 
   const boundaryDistanceText = useMemo(() => {
-    if (response?.distances.distanceToBoundaryKm === null) {
+    if (
+      response?.distances.distanceToBoundaryKm === null ||
+      response?.distances.distanceToBoundaryKm === undefined
+    ) {
       return "—";
     }
 
