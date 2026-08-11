@@ -22,104 +22,116 @@ interface GeocodeResult {
 }
 
 async function geocodeWithPostcodesIo(postcode: string): Promise<GeocodeResult | null> {
-  const response = await fetch(
-    `https://api.postcodes.io/postcodes/${encodeURIComponent(postcode)}`,
-    { next: { revalidate: 0 } },
-  );
+  try {
+    const response = await fetch(
+      `https://api.postcodes.io/postcodes/${encodeURIComponent(postcode)}`,
+      { next: { revalidate: 0 } },
+    );
 
-  if (!response.ok) {
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = (await response.json()) as {
+      status?: number;
+      result?: { latitude?: number; longitude?: number };
+    };
+
+    if (payload.status !== 200 || !payload.result) {
+      return null;
+    }
+
+    const { latitude, longitude } = payload.result;
+    if (typeof latitude !== "number" || typeof longitude !== "number") {
+      return null;
+    }
+
+    return {
+      provider: "postcodes.io",
+      point: { lat: latitude, lng: longitude },
+    };
+  } catch {
     return null;
   }
-
-  const payload = (await response.json()) as {
-    status?: number;
-    result?: { latitude?: number; longitude?: number };
-  };
-
-  if (payload.status !== 200 || !payload.result) {
-    return null;
-  }
-
-  const { latitude, longitude } = payload.result;
-  if (typeof latitude !== "number" || typeof longitude !== "number") {
-    return null;
-  }
-
-  return {
-    provider: "postcodes.io",
-    point: { lat: latitude, lng: longitude },
-  };
 }
 
 async function geocodeWithGoogle(postcode: string, apiKey: string): Promise<GeocodeResult | null> {
-  const response = await fetch(
-    `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-      `${postcode}, UK`,
-    )}&key=${encodeURIComponent(apiKey)}`,
-    { next: { revalidate: 0 } },
-  );
+  try {
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+        `${postcode}, UK`,
+      )}&key=${encodeURIComponent(apiKey)}`,
+      { next: { revalidate: 0 } },
+    );
 
-  if (!response.ok) {
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = (await response.json()) as {
+      status?: string;
+      results?: Array<{ geometry?: { location?: { lat?: number; lng?: number } } }>;
+    };
+
+    if (payload.status !== "OK" || !payload.results || payload.results.length === 0) {
+      return null;
+    }
+
+    const location = payload.results[0]?.geometry?.location;
+    if (!location || typeof location.lat !== "number" || typeof location.lng !== "number") {
+      return null;
+    }
+
+    return {
+      provider: "google",
+      point: { lat: location.lat, lng: location.lng },
+    };
+  } catch {
     return null;
   }
-
-  const payload = (await response.json()) as {
-    status?: string;
-    results?: Array<{ geometry?: { location?: { lat?: number; lng?: number } } }>;
-  };
-
-  if (payload.status !== "OK" || !payload.results || payload.results.length === 0) {
-    return null;
-  }
-
-  const location = payload.results[0]?.geometry?.location;
-  if (!location || typeof location.lat !== "number" || typeof location.lng !== "number") {
-    return null;
-  }
-
-  return {
-    provider: "google",
-    point: { lat: location.lat, lng: location.lng },
-  };
 }
 
 async function geocodeWithNominatim(postcode: string): Promise<GeocodeResult | null> {
-  const userAgent =
-    process.env.NOMINATIM_USER_AGENT ?? "oanddlogistics-coverage-app/1.0 (contact@example.com)";
+  try {
+    const userAgent =
+      process.env.NOMINATIM_USER_AGENT ?? "oanddlogistics-coverage-app/1.0 (contact@example.com)";
 
-  const response = await fetch(
-    `https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=gb&limit=1&q=${encodeURIComponent(
-      postcode,
-    )}`,
-    {
-      headers: {
-        "User-Agent": userAgent,
-        "Accept-Language": "en-GB,en;q=0.8",
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=gb&limit=1&q=${encodeURIComponent(
+        postcode,
+      )}`,
+      {
+        headers: {
+          "User-Agent": userAgent,
+          "Accept-Language": "en-GB,en;q=0.8",
+        },
+        next: { revalidate: 0 },
       },
-      next: { revalidate: 0 },
-    },
-  );
+    );
 
-  if (!response.ok) {
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = (await response.json()) as Array<{ lat?: string; lon?: string }> | null;
+    const match = Array.isArray(payload) ? payload[0] : undefined;
+    if (!match?.lat || !match?.lon) {
+      return null;
+    }
+
+    const lat = Number(match.lat);
+    const lng = Number(match.lon);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return null;
+    }
+
+    return {
+      provider: "nominatim",
+      point: { lat, lng },
+    };
+  } catch {
     return null;
   }
-
-  const payload = (await response.json()) as Array<{ lat?: string; lon?: string }>;
-  const match = payload[0];
-  if (!match?.lat || !match?.lon) {
-    return null;
-  }
-
-  const lat = Number(match.lat);
-  const lng = Number(match.lon);
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-    return null;
-  }
-
-  return {
-    provider: "nominatim",
-    point: { lat, lng },
-  };
 }
 
 async function geocodeWithSecondaryProvider(postcode: string): Promise<GeocodeResult | null> {
@@ -140,10 +152,41 @@ function makeGeocodeDiagnostic(
   return {
     provider,
     usedForResolution,
-    lat: result?.point.lat ?? null,
-    lng: result?.point.lng ?? null,
+    lat: result?.point?.lat ?? null,
+    lng: result?.point?.lng ?? null,
     error,
   };
+}
+
+function getSecondaryProviderName(): GeocodeProvider {
+  if (process.env.GOOGLE_GEOCODING_API_KEY?.trim()) {
+    return "google";
+  }
+  return "nominatim";
+}
+
+function buildSecondaryDiagnostic(
+  secondaryResult: GeocodeResult | null,
+  usedForResolution: boolean,
+  secondaryIgnoredAsOutlier: boolean,
+): GeocodeDiagnosticEntry {
+  if (!secondaryResult) {
+    return makeGeocodeDiagnostic(
+      getSecondaryProviderName(),
+      null,
+      false,
+      "No result from secondary provider.",
+    );
+  }
+
+  return makeGeocodeDiagnostic(
+    secondaryResult.provider,
+    secondaryResult,
+    usedForResolution,
+    secondaryIgnoredAsOutlier
+      ? "Ignored because it deviates from primary provider."
+      : null,
+  );
 }
 
 function buildErrorResponse(
@@ -226,22 +269,17 @@ export async function POST(request: Request) {
           maxGeocodeDeviationKm,
           nearBoundaryThresholdKm: DEFAULT_NEAR_BOUNDARY_THRESHOLD_KM,
           secondaryIgnoredAsOutlier,
-          primary: makeGeocodeDiagnostic("postcodes.io", primaryResult, false, null),
-          secondary: secondaryResult
-            ? makeGeocodeDiagnostic(
-                secondaryResult.provider,
-                secondaryResult,
-                false,
-                secondaryIgnoredAsOutlier
-                  ? "Ignored because it deviates from primary provider."
-                  : null,
-              )
-            : makeGeocodeDiagnostic(
-                process.env.GOOGLE_GEOCODING_API_KEY ? "google" : "nominatim",
-                null,
-                false,
-                "No result from secondary provider.",
-              ),
+          primary: makeGeocodeDiagnostic(
+            "postcodes.io",
+            primaryResult,
+            false,
+            primaryResult ? null : "No result from primary provider.",
+          ),
+          secondary: buildSecondaryDiagnostic(
+            secondaryResult,
+            false,
+            secondaryIgnoredAsOutlier,
+          ),
         },
       };
 
@@ -291,27 +329,18 @@ export async function POST(request: Request) {
           resolved.provider === "postcodes.io",
           primaryResult ? null : "No result from primary provider.",
         ),
-        secondary: secondaryResult
-          ? makeGeocodeDiagnostic(
-              secondaryResult.provider,
-              secondaryResult,
-              resolved.provider === secondaryResult.provider,
-              secondaryIgnoredAsOutlier
-                ? "Ignored because it deviates from primary provider."
-                : null,
-            )
-          : makeGeocodeDiagnostic(
-              process.env.GOOGLE_GEOCODING_API_KEY ? "google" : "nominatim",
-              null,
-              false,
-              "No result from secondary provider.",
-            ),
+        secondary: buildSecondaryDiagnostic(
+          secondaryResult,
+          resolved.provider === secondaryResult?.provider,
+          secondaryIgnoredAsOutlier,
+        ),
       },
     };
 
     return NextResponse.json(response);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unexpected server error";
+    console.error("coverage API error", error);
     return NextResponse.json(
       buildErrorResponse(rawPostcode, normalizedPostcode, message, maxGeocodeDeviationKm),
       { status: 500 },
