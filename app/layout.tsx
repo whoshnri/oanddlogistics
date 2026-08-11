@@ -14,7 +14,7 @@ const body = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "O&D Logistics — Same-day local delivery",
+  title: "O&D Logistics: Same-day local delivery",
   description:
     "Friendly same-day courier and local delivery for businesses across our coverage area. Check your postcode and get a quote.",
 };

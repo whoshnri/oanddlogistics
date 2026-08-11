@@ -4,10 +4,10 @@ const DEFAULT_MAX_GEOCODE_DEVIATION_KM = 1;
 export const DEFAULT_NEAR_BOUNDARY_THRESHOLD_KM = 1;
 export const DEFAULT_PUBLIC_MAP_ZOOM = 11;
 const DEFAULT_PUBLIC_BOUNDARY: CoverageBoundary = {
-  minLat: 51.3,
-  maxLat: 51.7,
-  minLng: -0.5,
-  maxLng: 0.3,
+  minLat: 52.5061,
+  maxLat: 52.6752,
+  minLng: -0.4977,
+  maxLng: -0.0128,
 };
 
 function parseRequiredNumber(name: string, raw: string | undefined): number {

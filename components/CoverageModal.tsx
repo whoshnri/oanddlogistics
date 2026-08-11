@@ -9,9 +9,15 @@ interface CoverageModalProps {
   open: boolean;
   onClose: () => void;
   initialBoundary: CoverageBoundary;
+  initialPostcode?: string;
 }
 
-export function CoverageModal({ open, onClose, initialBoundary }: CoverageModalProps) {
+export function CoverageModal({
+  open,
+  onClose,
+  initialBoundary,
+  initialPostcode = "",
+}: CoverageModalProps) {
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -55,10 +61,10 @@ export function CoverageModal({ open, onClose, initialBoundary }: CoverageModalP
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
               <p id={titleId} className="font-display text-2xl font-semibold tracking-tight text-ink">
-                Are we in your area?
+                Coverage result
               </p>
               <p className="mt-1 text-sm text-ink-muted">
-                Enter a postcode and we&apos;ll tell you straight away.
+                {initialPostcode.trim() || "Your delivery coverage"}
               </p>
             </div>
             <button
@@ -73,7 +79,11 @@ export function CoverageModal({ open, onClose, initialBoundary }: CoverageModalP
         </div>
 
         <div className="overflow-y-auto px-5 py-5 md:px-6 md:py-6">
-          <CoverageChecker initialBoundary={initialBoundary} compact />
+          <CoverageChecker
+            key={initialPostcode}
+            initialBoundary={initialBoundary}
+            initialPostcode={initialPostcode}
+          />
         </div>
       </div>
     </div>
