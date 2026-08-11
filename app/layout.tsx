@@ -1,30 +1,31 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, Nunito } from "next/font/google";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const display = Fraunces({
+  variable: "--font-display-family",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const body = Nunito({
+  variable: "--font-body-family",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "O&D Logistics Coverage Checker",
-  description: "Check UK postcode coverage for O&D Logistics.",
+  title: "O&D Logistics — Same-day local delivery",
+  description:
+    "Friendly same-day courier and local delivery for businesses across our coverage area. Check your postcode and get a quote.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      lang="en-GB"
+      className={`${display.variable} ${body.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col font-sans text-ink">{children}</body>
     </html>
   );
 }

@@ -1,26 +1,166 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --mustard: #c4a04a;
+  --mustard-deep: #a88638;
+  --mustard-soft: #d4b86a;
+  --mustard-pale: #e8d49a;
+  --ink: #12100c;
+  --ink-soft: #2a2418;
+  --ink-muted: #4a4030;
+  --cream: #f3e9c8;
+  --surface: #efe0a8;
+  --success: #1f5c3a;
+  --success-bg: #d8eadc;
+  --caution: #7a4e12;
+  --caution-bg: #f0dfb8;
+  --outside: #6b2e1f;
+  --outside-bg: #edd5cc;
+  --background: var(--mustard);
+  --foreground: var(--ink);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-mustard: var(--mustard);
+  --color-mustard-deep: var(--mustard-deep);
+  --color-mustard-soft: var(--mustard-soft);
+  --color-mustard-pale: var(--mustard-pale);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-muted: var(--ink-muted);
+  --color-cream: var(--cream);
+  --color-surface: var(--surface);
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-caution: var(--caution);
+  --color-caution-bg: var(--caution-bg);
+  --color-outside: var(--outside);
+  --color-outside-bg: var(--outside-bg);
+  --font-sans: var(--font-body-family);
+  --font-display: var(--font-display-family);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body-family), ui-sans-serif, sans-serif;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--mustard-pale);
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes soft-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.85;
+  }
+}
+
+@keyframes pin-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-rise {
+  animation: rise-in 0.7s ease-out both;
+}
+
+.animate-rise-delay-1 {
+  animation: rise-in 0.7s ease-out 0.12s both;
+}
+
+.animate-rise-delay-2 {
+  animation: rise-in 0.7s ease-out 0.24s both;
+}
+
+.animate-rise-delay-3 {
+  animation: rise-in 0.7s ease-out 0.36s both;
+}
+
+.animate-soft-pulse {
+  animation: soft-pulse 3.2s ease-in-out infinite;
+}
+
+.animate-pin-drop {
+  animation: pin-drop 0.45s ease-out both;
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0.6;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-sheet-in {
+  animation: sheet-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-modal-in {
+  animation: modal-in 0.28s ease-out both;
+}
+
+.coverage-map .leaflet-container {
+  background: #d6c48a;
+  font: inherit;
+}
+
+.coverage-map .leaflet-control-attribution {
+  display: none;
+}
+
+.hero-grain {
+  background-image:
+    radial-gradient(ellipse 80% 60% at 70% 40%, rgba(243, 233, 200, 0.35), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 15% 80%, rgba(168, 134, 56, 0.28), transparent 55%),
+    linear-gradient(165deg, var(--mustard-soft) 0%, var(--mustard) 45%, var(--mustard-deep) 100%);
+}
+
+.section-rule {
+  border-top: 1px solid rgba(18, 16, 12, 0.12);
 }

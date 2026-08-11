@@ -1,22 +1,28 @@
 "use client";
 
-import { Circle, MapContainer, Polygon, TileLayer, Tooltip } from "react-leaflet";
+import { useEffect } from "react";
+import {
+  CircleMarker,
+  MapContainer,
+  Polygon,
+  TileLayer,
+  useMap,
+} from "react-leaflet";
 
 import type { CoverageBoundary, CoverageStatus, LatLngPoint } from "@/lib/types";
 
 interface CoverageMapProps {
   boundary: CoverageBoundary;
   point: LatLngPoint | null;
-  postcodeLabel: string;
   status: CoverageStatus;
-  zoom: number;
+  zoom?: number;
 }
 
 const STATUS_COLORS: Record<CoverageStatus, string> = {
-  inside: "#16a34a",
-  "near-boundary": "#f59e0b",
-  outside: "#dc2626",
-  error: "#64748b",
+  inside: "#1d4ed8",
+  "near-boundary": "#1d4ed8",
+  outside: "#b45309",
+  error: "#1d4ed8",
 };
 
 function getBoundaryCoordinates(boundary: CoverageBoundary): [number, number][] {
@@ -28,66 +34,75 @@ function getBoundaryCoordinates(boundary: CoverageBoundary): [number, number][] 
   ];
 }
 
+function FitBounds({
+  boundary,
+  point,
+}: {
+  boundary: CoverageBoundary;
+  point: LatLngPoint | null;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    const corners: [number, number][] = getBoundaryCoordinates(boundary);
+    if (point) {
+      corners.push([point.lat, point.lng]);
+    }
+    map.fitBounds(corners, { padding: [28, 28], maxZoom: 13 });
+  }, [boundary, point, map]);
+
+  return null;
+}
+
 export function CoverageMap({
   boundary,
   point,
-  postcodeLabel,
   status,
-  zoom,
+  zoom = 11,
 }: CoverageMapProps) {
   const boundaryCoordinates = getBoundaryCoordinates(boundary);
-  const fallbackCenter: [number, number] = [
-    (boundary.minLat + boundary.maxLat) / 2,
-    (boundary.minLng + boundary.maxLng) / 2,
-  ];
-  const center: [number, number] = point ? [point.lat, point.lng] : fallbackCenter;
-  const statusColor = STATUS_COLORS[status];
+  const center: [number, number] = point
+    ? [point.lat, point.lng]
+    : [
+        (boundary.minLat + boundary.maxLat) / 2,
+        (boundary.minLng + boundary.maxLng) / 2,
+      ];
+  const pinColor = STATUS_COLORS[status];
 
   return (
-    <div className="h-[420px] w-full overflow-hidden rounded-xl border border-slate-200">
+    <div className="coverage-map h-[280px] w-full overflow-hidden md:h-[320px]">
       <MapContainer
         center={center}
         zoom={zoom}
-        scrollWheelZoom
+        scrollWheelZoom={false}
+        zoomControl={false}
+        attributionControl={false}
         className="h-full w-full"
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <FitBounds boundary={boundary} point={point} />
 
         <Polygon
           positions={boundaryCoordinates}
-          pathOptions={{ color: "#1d4ed8", fillColor: "#3b82f6", fillOpacity: 0.12, weight: 2 }}
-        >
-          <Tooltip sticky>Coverage boundary</Tooltip>
-        </Polygon>
+          pathOptions={{
+            color: "#2563eb",
+            fillColor: "#2563eb",
+            fillOpacity: 0.08,
+            weight: 3,
+          }}
+        />
 
         {point ? (
-          <>
-            <Circle
-              center={[point.lat, point.lng]}
-              radius={1000}
-              pathOptions={{
-                color: statusColor,
-                fillColor: statusColor,
-                fillOpacity: 0.18,
-                weight: 2,
-              }}
-            >
-              <Tooltip sticky>{postcodeLabel}</Tooltip>
-            </Circle>
-            <Circle
-              center={[point.lat, point.lng]}
-              radius={55}
-              pathOptions={{
-                color: statusColor,
-                fillColor: statusColor,
-                fillOpacity: 0.95,
-                weight: 1,
-              }}
-            />
-          </>
+          <CircleMarker
+            center={[point.lat, point.lng]}
+            radius={8}
+            pathOptions={{
+              color: "#fff",
+              weight: 2,
+              fillColor: pinColor,
+              fillOpacity: 1,
+            }}
+          />
         ) : null}
       </MapContainer>
     </div>
