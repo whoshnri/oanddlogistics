@@ -6,7 +6,7 @@ export default function Home() {
   const defaultMapZoom = getPublicDefaultMapZoom();
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-gradient-to-b from-amber-50 via-slate-50 to-slate-100">
       <CoverageChecker initialBoundary={initialBoundary} defaultMapZoom={defaultMapZoom} />
     </main>
   );
